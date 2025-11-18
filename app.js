@@ -5,6 +5,8 @@ const app = express();
 // routes
 const authRouter = require("./routes/authRoute");
 
+app.use(express.json());
+
 app.get("/", (req, res) => {
   res.json({
     status: "success",
