@@ -1,8 +1,18 @@
-require('dotenv').config({path: `${}`});
+require("dotenv").config({ path: `${process.cwd()}/.env` });
+
 const express = require("express");
 const app = express();
+// routes
+const authRouter = require("./routes/authRoute");
 
 app.get("/", (req, res) => {
-  res.send("hello world");
+  res.json({
+    status: "success",
+    message: "api working fine",
+  });
 });
-app.listen(process.env.PORT,() => console.log('Server is running'));
+
+// routes
+app.use("/api/v1/auth", authRouter);
+
+app.listen(process.env.PORT, () => console.log("Server is running"));
