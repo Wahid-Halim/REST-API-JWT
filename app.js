@@ -12,7 +12,16 @@ app.get("/", (req, res) => {
   });
 });
 
-// routes
+// all routes
 app.use("/api/v1/auth", authRouter);
 
-app.listen(process.env.PORT, () => console.log("Server is running"));
+// this must be at the end of all routes
+app.use((req, res) => {
+  res.status(404).json({
+    status: "fail",
+    message: "Route not found",
+  });
+});
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log("Server is running"));
