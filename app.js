@@ -5,6 +5,12 @@ const app = express();
 // routes
 const authRouter = require("./routes/auth.routes");
 
+// error handler
+const catchAsync = require("./utils/catchAsync");
+const AppError = require("./utils/appError");
+const { stack } = require("sequelize/lib/utils");
+const globalErrorHandler = require("./controllers/error.controller");
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -18,12 +24,13 @@ app.get("/", (req, res) => {
 app.use("/api/v1/auth", authRouter);
 
 // this must be at the end of all routes
-app.use((req, res) => {
-  res.status(404).json({
-    status: "fail",
-    message: "Route not found",
-  });
-});
+app.use(
+  catchAsync(async (req, res) => {
+    throw new AppError("Route does not exists", 404);
+  })
+);
+
+app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log("Server is running"));
