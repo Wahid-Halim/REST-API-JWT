@@ -3,7 +3,7 @@ require("dotenv").config({ path: `${process.cwd()}/.env` });
 const express = require("express");
 const app = express();
 // routes
-const authRouter = require("./routes/authRoute");
+const authRouter = require("./routes/auth.routes");
 
 app.use(express.json());
 
