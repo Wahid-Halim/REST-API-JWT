@@ -26,7 +26,7 @@ app.use("/api/v1/auth", authRouter);
 // this must be at the end of all routes
 app.use(
   catchAsync(async (req, res) => {
-    throw new AppError("Route does not exists", 404);
+    throw new AppError(`cant find ${req.originalUrl} on this server`, 404);
   })
 );
 

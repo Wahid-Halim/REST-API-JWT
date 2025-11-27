@@ -3,6 +3,8 @@ const bcrypt = require("bcryptjs");
 
 const User = require("../db/models/user.model");
 const jwt = require("jsonwebtoken");
+const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
 const generateToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -10,14 +12,11 @@ const generateToken = (payload) => {
   });
 };
 
-const signUp = async (req, res, next) => {
+const signUp = catchAsync(async (req, res, next) => {
   const body = req.body;
 
   if (!["1", "2"].includes(body.userType)) {
-    return res.status(400).json({
-      success: "fail",
-      message: "Invalid user type",
-    });
+    throw new AppError("Invalid user type", 400);
   }
 
   const newUser = await User.create({
@@ -28,7 +27,12 @@ const signUp = async (req, res, next) => {
     password: body.password,
   });
 
+  if (!newUser) {
+    return next(new AppError("Failed to create the user", 400));
+  }
+
   const result = newUser.toJSON();
+
   delete result.password;
   delete result.deletedAt;
 
@@ -36,41 +40,25 @@ const signUp = async (req, res, next) => {
     id: result.id,
   });
 
-  if (!result) {
-    return res.status(400).json({
-      status: "fail",
-      message: "Failed to crate user",
-    });
-  }
-
   return res.status(201).json({
     status: "success",
     data: result,
   });
-};
+});
 
-const login = async (req, res) => {
+const login = catchAsync(async (req, res,next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({
-      status: "fail",
-      message: "Please provide email and password",
-    });
+    return next(new AppError("Please provide email and password", 400));
   }
 
   const result = await User.findOne({ where: { email } });
   if (!result) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Incorrect email and password",
-    });
+    return next(new AppError("Incorrect email, and password", 401));
   }
   const isPasswordValid = await bcrypt.compare(password, result.password);
   if (!isPasswordValid) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Incorrect email and password",
-    });
+    return next(new AppError("Incorrect email, and password", 401));
   }
   const userData = result.toJSON();
   delete userData.password;
@@ -80,6 +68,6 @@ const login = async (req, res) => {
     status: "success",
     data: userData,
   });
-};
+});
 
 module.exports = { signUp, login };
